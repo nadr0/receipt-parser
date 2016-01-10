@@ -22,6 +22,7 @@ void parseTXTtoCSV(char * fileName, char * number){
 
 	printf("PROCESSING : %s\n", fileName);
 
+	/* Goes to the GROCERY items*/
 	while( (getline(&line, &len, f)) != -1){
 		/* Check to see if we find GROCERY */
 		if(strcmp(line,"GROCERY\n") == 0){
@@ -29,12 +30,7 @@ void parseTXTtoCSV(char * fileName, char * number){
 		}
 	}
 
-	/* 
-		Set to 1 if you just read a new item 
-		Set to 0 if you just read the item name of the new item
-		Gets set back to 1 if read N, FT, T
-	*/
-
+	/* Creating the .csv file for the parsed items */
 	FILE * myFile = NULL;
 	char * myFileName = calloc(1,strlen(number) + strlen("meijer.csv") + 1);
 	strcat(myFileName,"meijer");
@@ -42,6 +38,9 @@ void parseTXTtoCSV(char * fileName, char * number){
 	strcat(myFileName,".csv");
 	myFile = fopen(myFileName, "w+");
 
+	/* 
+		Variables to keep track of the parsing state of items
+	*/
 	int itemNameFound = 0;
 	int itemPriceFound = 0;
 
@@ -54,7 +53,7 @@ void parseTXTtoCSV(char * fileName, char * number){
 	char * itemQuantity = NULL;
 	char * mPerks = NULL;
 
-
+	/* Write the headers for the csv file*/
 	fwrite("Item,Price,Quantity,mPerks\n",sizeof(char),strlen("Item,Price,Quantity,mPerks\n"),myFile);
 
 
@@ -87,7 +86,7 @@ void parseTXTtoCSV(char * fileName, char * number){
 					itemName = retrieveItemName(line);
 				}else{
 					/* Doesn't have ending char */
-					itemName = retrieveItemNameEnd(line);
+					itemName = retrieveItemNameNoEnd(line);
 				}
 				itemNameFound = 1;
 			}
@@ -123,6 +122,7 @@ void parseTXTtoCSV(char * fileName, char * number){
 
 	}
 
+	/* Clean up */
 	free(myFileName);
 	free(line);
 	fclose(f);
@@ -157,7 +157,7 @@ char * retrieveItemName(char * line){
 
 	itemName -= itemNameLength;
 
-	/* EXTRA BYTE (32) SPACE CHAR*/
+	/* Extra char which is a space, make it a null char now*/
 	if(itemName[itemNameLength-1] == ' '){
 		itemName[itemNameLength-1] = '\0';
 	}
@@ -166,11 +166,10 @@ char * retrieveItemName(char * line){
 	free(copyLine);	
 
 	return itemName;
-
 }	
 
 
-char * retrieveItemNameEnd(char * line){
+char * retrieveItemNameNoEnd(char * line){
 
 	char * copyLine = calloc(1, strlen(line)+1);
 	strcpy(copyLine, line);

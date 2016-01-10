@@ -1,6 +1,7 @@
 /* 
 	char * fileName - is the the txt file name
 					- i.g. "myFileNameGoesHere.txt"
+	char * number - is just to number the csv files 
 */
 void parseTXTtoCSV(char * fileName, char * number);
 
@@ -45,7 +46,7 @@ int skipLineAfterItemProcessed(char * line);
 
 
 /* Gets the itemName if there is no ending char */
-char * retrieveItemNameEnd(char * line);
+char * retrieveItemNameNoEnd(char * line);
 
 /* 	
 	Get the item quantity if any 

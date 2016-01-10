@@ -36,6 +36,12 @@ int main(int argc, char ** argv){
 		}
 	}
 
+	/* Check if there are any pdfs */
+	if(numberOfPDFs == 0){
+		printf("You should add some receipts to this directory!\n");
+		return 1;
+	}
+
 	/* 
 		Create new ARGV for exec 
 		numberOfPDFs + 1 since "./tet" goes first
