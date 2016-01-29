@@ -1,7 +1,6 @@
 /* 
 	char * fileName - is the the txt file name
 					- i.g. "myFileNameGoesHere.txt"
-	char * number - is just to number the csv files 
 */
 void parseTXTtoCSV(char * fileName, char * number);
 
@@ -46,7 +45,7 @@ int skipLineAfterItemProcessed(char * line);
 
 
 /* Gets the itemName if there is no ending char */
-char * retrieveItemNameNoEnd(char * line);
+char * retrieveItemNameEnd(char * line);
 
 /* 	
 	Get the item quantity if any 
@@ -69,3 +68,8 @@ void addToCSV(char * name, char * price, char * quantity, FILE * csv);
 	Writes the mPerks into the csv file
 */
 void addMPerksToCSV(char * mPerks, FILE * csv);
+
+
+void add_end_MPerksToCSV(char * mPerks, FILE * csv);
+
+char * retrieve_mPerksOfferAtTheEnd(char * line);

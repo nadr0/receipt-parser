@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <string.h>
 
+
 #include "parsePDF.h"
 
 
@@ -22,7 +23,6 @@ void parseTXTtoCSV(char * fileName, char * number){
 
 	printf("PROCESSING : %s\n", fileName);
 
-	/* Goes to the GROCERY items*/
 	while( (getline(&line, &len, f)) != -1){
 		/* Check to see if we find GROCERY */
 		if(strcmp(line,"GROCERY\n") == 0){
@@ -30,17 +30,19 @@ void parseTXTtoCSV(char * fileName, char * number){
 		}
 	}
 
-	/* Creating the .csv file for the parsed items */
+	/*
+		Set to 1 if you just read a new item 
+		Set to 0 if you just read the item name of the new item
+		Gets set back to 1 if read N, FT, T
+	*/
+
 	FILE * myFile = NULL;
-	char * myFileName = calloc(1,strlen(number) + strlen("meijer.csv") + 1);
+	char * myFileName = calloc(1,strlen(number) + strlen("meijer.txt") + 1);
 	strcat(myFileName,"meijer");
 	strcat(myFileName, number);
-	strcat(myFileName,".csv");
+	strcat(myFileName,".txt");
 	myFile = fopen(myFileName, "w+");
 
-	/* 
-		Variables to keep track of the parsing state of items
-	*/
 	int itemNameFound = 0;
 	int itemPriceFound = 0;
 
@@ -53,8 +55,14 @@ void parseTXTtoCSV(char * fileName, char * number){
 	char * itemQuantity = NULL;
 	char * mPerks = NULL;
 
-	/* Write the headers for the csv file*/
-	fwrite("Item,Price,Quantity,mPerks\n",sizeof(char),strlen("Item,Price,Quantity,mPerks\n"),myFile);
+	char string_mPerksTotal[100];
+	float mPerksTotal = 0.0;
+
+	char * tempItemQuantity = NULL;
+
+	char * end_mPerks = NULL;
+
+	fwrite("Item,Price,Quantity,mPerks",sizeof(char),strlen("Item,Price,Quantity,mPerks"),myFile);
 
 
 	/*
@@ -70,9 +78,13 @@ void parseTXTtoCSV(char * fileName, char * number){
 		/* If we just saw an item and the next line contains a @ symbol, skip the line */
 		if(itemSeen == 1 && skipLineAfterItemProcessed(line)){
 			mPerks = retrieve_mPerksOffer(line);
+			end_mPerks = retrieve_mPerksOfferAtTheEnd(line);
+			if(end_mPerks){
+				add_end_MPerksToCSV(end_mPerks, myFile);
+				end_mPerks = NULL;
+			}
 			if(mPerks){
-				addMPerksToCSV(mPerks, myFile);
-				mPerks = NULL;
+				mPerksTotal += atof(mPerks);	
 			}
 
 		}else{
@@ -80,19 +92,32 @@ void parseTXTtoCSV(char * fileName, char * number){
 			itemSeen = 0;
 
 			if(!itemNameFound){
+				if(mPerksTotal != 0.0){
+					memset(string_mPerksTotal,0,100);
+					sprintf(string_mPerksTotal,"%f",mPerksTotal);
+					addMPerksToCSV(string_mPerksTotal, myFile);
+					mPerks = NULL;
+				}else{
+					addMPerksToCSV("\0", myFile);
+				}
+				mPerksTotal = 0.0;
 				/* Check if it has ending char or not */
 				if(endOfItem(line)){
 					/* Has ending Char */
 					itemName = retrieveItemName(line);
 				}else{
 					/* Doesn't have ending char */
-					itemName = retrieveItemNameNoEnd(line);
+					itemName = retrieveItemNameEnd(line);
 				}
 				itemNameFound = 1;
 			}
 
+			tempItemQuantity = retrieveItemQuantity(line);
+			if(tempItemQuantity != NULL){
+				itemQuantity = tempItemQuantity;
+			}	
+
 			if(!itemPriceFound && endOfItem(line)){
-				itemQuantity = retrieveItemQuantity(line);
 				itemPrice = retrieveItemPrice(line);
 				itemPriceFound = 1;
 			}
@@ -122,7 +147,6 @@ void parseTXTtoCSV(char * fileName, char * number){
 
 	}
 
-	/* Clean up */
 	free(myFileName);
 	free(line);
 	fclose(f);
@@ -157,7 +181,7 @@ char * retrieveItemName(char * line){
 
 	itemName -= itemNameLength;
 
-	/* Extra char which is a space, make it a null char now*/
+	/* EXTRA BYTE (32) SPACE CHAR*/
 	if(itemName[itemNameLength-1] == ' '){
 		itemName[itemNameLength-1] = '\0';
 	}
@@ -166,10 +190,11 @@ char * retrieveItemName(char * line){
 	free(copyLine);	
 
 	return itemName;
+
 }	
 
 
-char * retrieveItemNameNoEnd(char * line){
+char * retrieveItemNameEnd(char * line){
 
 	char * copyLine = calloc(1, strlen(line)+1);
 	strcpy(copyLine, line);
@@ -262,6 +287,36 @@ char * retrieve_mPerksOffer(char * line){
 	char * searchString_for_EQUALS_ARROW = strstr(line,"=>");
 
 	/* If there is no end char */
+	// !endOfItem(line) && 
+	if(searchString_for_EQUALS_ARROW){
+		int stringMPerksLength = 0;
+		char * ptr = line;
+		/* = > _  (equals, arrow, space) move the ptr forward*/
+		ptr += 3;
+		while(*ptr != ' '){
+			stringMPerksLength++;
+			ptr++;
+		}
+		ptr = ptr - stringMPerksLength;
+		char * stringMPerk = calloc(1, stringMPerksLength + 1);
+		while(*ptr != ' ')
+		{
+			*stringMPerk = *ptr;
+			stringMPerk++;
+			ptr++;
+		}
+		stringMPerk = stringMPerk - stringMPerksLength;
+		return stringMPerk;
+	}
+
+	return NULL;
+}
+
+char * retrieve_mPerksOfferAtTheEnd(char * line){
+
+	char * searchString_for_EQUALS_ARROW = strstr(line,"=>");
+
+	/* If there is no end char */
 	if(!endOfItem(line) && searchString_for_EQUALS_ARROW){
 		int stringMPerksLength = 0;
 		char * ptr = line;
@@ -330,11 +385,21 @@ void addToCSV(char * name, char * price, char * quantity, FILE * csv){
 		fwrite(oneItem, strlen(oneItem)+1, sizeof(char), csv);
 	}	
 	fwrite(",",1,1,csv);
-	fwrite("\n",1,1,csv);
+	// fwrite("\n",1,1,csv);
 
 }
 
 void addMPerksToCSV(char * mPerks, FILE * csv){
+	// fwrite(",",1,1,csv);
+	// fwrite(",",1,1,csv);
+	// fwrite(",",1,1,csv);
+	fwrite(mPerks, strlen(mPerks)+1, sizeof(char), csv);
+	fwrite("\n",1,1,csv);
+}
+
+
+void add_end_MPerksToCSV(char * mPerks, FILE * csv){
+	fwrite("\n",1,1,csv);
 	fwrite(",",1,1,csv);
 	fwrite(",",1,1,csv);
 	fwrite(",",1,1,csv);
