@@ -37,10 +37,10 @@ void parseTXTtoCSV(char * fileName, char * number){
 	*/
 
 	FILE * myFile = NULL;
-	char * myFileName = calloc(1,strlen(number) + strlen("meijer.txt") + 1);
+	char * myFileName = calloc(1,strlen(number) + strlen("meijer.csv") + 1);
 	strcat(myFileName,"meijer");
 	strcat(myFileName, number);
-	strcat(myFileName,".txt");
+	strcat(myFileName,".csv");
 	myFile = fopen(myFileName, "w+");
 
 	int itemNameFound = 0;
