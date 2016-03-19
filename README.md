@@ -18,8 +18,7 @@ The program will search your current directory for all .pdf files and feed it in
 
 The text file of the pdf will then be parsed into a csv file, the template is below. 
 
-
-
+mPerks is the mPerks discount for an item. 
 
 Product Name  | Price Per Unit | Quantity  | mPerks
 ------------- | ------------- | ------------- | -------------
