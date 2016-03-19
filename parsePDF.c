@@ -3,7 +3,7 @@
 #include <unistd.h>
 #include <stdio.h>
 #include <string.h>
-
+#include <time.h>
 
 #include "parsePDF.h"
 
@@ -23,7 +23,17 @@ void parseTXTtoCSV(char * fileName, char * number){
 
 	printf("PROCESSING : %s\n", fileName);
 
+	int count = 0;
+	char DATE[20];
+	memset(DATE,0,20);
+
 	while( (getline(&line, &len, f)) != -1){
+		count++;
+		if(count == 2){
+			strcpy(DATE,line);
+		}
+
+
 		/* Check to see if we find GROCERY */
 		if(strcmp(line,"GROCERY\n") == 0){
 			break;
@@ -61,10 +71,9 @@ void parseTXTtoCSV(char * fileName, char * number){
 	char * tempItemQuantity = NULL;
 
 	char * end_mPerks = NULL;
+	int added_end_mPerks = 0;
 
 	fwrite("Item,Price,Quantity,mPerks",sizeof(char),strlen("Item,Price,Quantity,mPerks"),myFile);
-
-
 	/*
 		PARSING THE TXT FILE INTO
 			NAME,PRICE,QUANTITY,mPERKS
@@ -81,6 +90,7 @@ void parseTXTtoCSV(char * fileName, char * number){
 			end_mPerks = retrieve_mPerksOfferAtTheEnd(line);
 			if(end_mPerks){
 				add_end_MPerksToCSV(end_mPerks, myFile);
+				added_end_mPerks++;
 				end_mPerks = NULL;
 			}
 			if(mPerks){
@@ -124,7 +134,21 @@ void parseTXTtoCSV(char * fileName, char * number){
 
 			if(itemPriceFound && itemNameFound){
 				itemSeen = 1;
-				addToCSV(itemName, itemPrice, itemQuantity, myFile);
+
+				float itemPriceTotal_f = atof(itemPrice);
+
+				float itemQuantity_f = 1.0;
+
+				if(itemQuantity != NULL){
+					itemQuantity_f = atof(itemQuantity);
+				}
+
+				float perQuantity = itemPriceTotal_f/itemQuantity_f;
+				char newPrice[100];
+				memset(newPrice,0,100);
+				sprintf(newPrice,"%f",perQuantity);
+
+				addToCSV(itemName, newPrice, itemQuantity, myFile);
 
 				/* Frees */
 				free(itemName);
@@ -146,6 +170,11 @@ void parseTXTtoCSV(char * fileName, char * number){
 		}
 
 	}
+	if(added_end_mPerks == 0){
+		fwrite("\n",sizeof(char),1,myFile);
+	}
+	fwrite(",,,,",sizeof(char),strlen(",,,,"),myFile);
+	fwrite(DATE,sizeof(char),strlen(DATE),myFile);
 
 	free(myFileName);
 	free(line);
@@ -261,8 +290,9 @@ int endOfItem(char * item){
 	char * searchedString_N = strstr(item, " N\n");
 	char * searchedString_FT = strstr(item, " FT\n");
 	char * searchedString_T = strstr(item, " T\n");
+	char * searchedString_F = strstr(item, " F\n");
 
-	if(searchedString_N || searchedString_FT || searchedString_T){
+	if(searchedString_N || searchedString_FT || searchedString_T || searchedString_F){
 		return 1;
 	}
 
@@ -288,7 +318,7 @@ char * retrieve_mPerksOffer(char * line){
 
 	/* If there is no end char */
 	// !endOfItem(line) && 
-	if(searchString_for_EQUALS_ARROW){
+	if(endOfItem(line) && searchString_for_EQUALS_ARROW){
 		int stringMPerksLength = 0;
 		char * ptr = line;
 		/* = > _  (equals, arrow, space) move the ptr forward*/

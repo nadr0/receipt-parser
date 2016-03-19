@@ -6,7 +6,7 @@
 #include <sys/wait.h>
 #include <sys/types.h>
 #include <unistd.h>
-
+#include <time.h>
 #include "parsePDF.h"
 
 int main(int argc, char ** argv){
@@ -34,12 +34,6 @@ int main(int argc, char ** argv){
 		if(checker){
 			numberOfPDFs++;
 		}
-	}
-
-	/* Check if there are any pdfs */
-	if(numberOfPDFs == 0){
-		printf("You should add some receipts to this directory!\n");
-		return 1;
 	}
 
 	/* 
