@@ -19,22 +19,25 @@ The program will search your current directory for all .pdf files and feed it in
 The text file of the pdf will then be parsed into a csv file, the template is below. 
 
 
-Product Name  | Product Price | Quantity  | mPerks
-------------- | ------------- | ------------- | -------------
-CUCUMBERS	|2.76	|4	
-CILANTRO|	0.89|	1	
-ORG CARROTS	|1.79|	1	
-CHICKEN THIGHS|	4.79|	1	
-CANNED PEAS|	0.57	|1	
-CANNED VEGGIES	|2.22|	1	
-TONIC WATER	|2.37 |	1	
-CANNED PEAS	|1.29|	1	
-GRND TURKEY	|10.74|	1	
-SHREDDED CHEESE|	2|	1	
-MILK ALTERNATVE|	3	|1	
-SHREDDED CHEESE|	2	|1	
-SHREDDED CHEESE	|2	|1	
 
+
+Product Name  | Price Per Unit | Quantity  | mPerks
+------------- | ------------- | ------------- | -------------
+|MILK		|1.89	|1	|
+|CHOBANI 4PK	|3.79	|2	|	
+|ORANGE JUICE	|3.99	|2	|	
+|PROTEIN BAR	|2.79	|1	|	
+|CEREAL		|2.79	|1	|
+|CLOROX FOAMER	|2.89	|1	|1	
+|BATH CLEANER	|2.99	|1	|1	
+|BATH CLEANER	|2.99	|2	|2	
+|CLEMENTINES	|3.69	|1	|	
+|FACIAL TISSUE	|5.49	|1	|1	
+|ICE CREAM	|3	|1	|	
+|ICE CREAM	|3	|2	|	
+|ICE CREAM BARS	|3	|2	|	
+|TRASH BAGS	|7.49	|1	|1	
+|		|	|	|3/8/16
 
 ```
 http://www.pdflib.com/pdflib-gmbh/ (PDFlib TET, does the pdf to text conversion)
